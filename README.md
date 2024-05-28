@@ -90,8 +90,16 @@ sh compile.sh
 ### Others
 
 - Directory `project/` is the system implementation.
+
 - The datanodes store data in memory using `redis` in default. If based on disk, define `IN_MEMORY` as `false` in `utils.h`, and create directory `storage/` to store the data blocks for data nodes.
+
 - Create directory `run_cluster_sh/` to store the running shell for each cluster, each cluster with a two file in a sub-directory. Then, use `tools/generator_sh.py` to generate configuration file and running shell for proxy and data node.
+
+- obtaining `wondershaper` for bandwidth constraint
+
+  ```shell
+  git clone https://github.com/magnific0/wondershaper.git
+  ```
 
 ------
 
@@ -158,5 +166,27 @@ cd $GCC_DIR
 			--with-mpc=$MPC_INSTALL_DIR --disable-multilib 
 make -j6
 make install
+```
+
+- set up the environment
+
+```shell
+TEMPORARY_SETTING=0
+
+if [ ${TEMPORARY_SETTING} -eq 1 ]; then
+	export PATH=${GCC_INSTALL_DIR}/bin:\$PATH
+	export CC=${GCC_INSTALL_DIR}/bin/gcc
+	export CXX=${GCC_INSTALL_DIR}/bin/g++
+	export LIBRARY_PATH=${GCC_INSTALL_DIR}/lib:$LIBRARY_PATH
+	export LD_LIBRARY_PATH=${GCC_INSTALL_DIR}/lib64:$LD_LIBRARY_PATH
+else
+	sudo echo "" >> ~/.bashrc
+	sudo echo "export PATH=${GCC_INSTALL_DIR}/bin:\$PATH" >> ~/.bashrc
+	sudo echo "export CC=${GCC_INSTALL_DIR}/bin/gcc" >> ~/.bashrc
+	sudo echo "export CXX=${GCC_INSTALL_DIR}/bin/g++" >> ~/.bashrc
+	sudo echo "export LIBRARY_PATH=${GCC_INSTALL_DIR}/lib:$LIBRARY_PATH" >> ~/.bashrc
+	sudo echo "export LD_LIBRARY_PATH=${GCC_INSTALL_DIR}/lib:${GCC_INSTALL_DIR}/lib64:\$LD_LIBRARY_PATH" >> ~/.bashrc
+	source ~/.bashrc
+fi
 ```
 
