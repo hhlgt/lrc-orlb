@@ -145,12 +145,8 @@ sh compile.sh
 - a shell script
 
 ```shell
-# first define the install path and install some dependencis such as gmp, mpfr, mpc, etc.
-INSTALL_DIR=
+INSTALL_DIR=/path/to/install
 GCC_INSTALL_DIR=$INSTALL_DIR/gcc-$GCC_VERSION
-GMP_INSTALL_DIR=$INSTALL_DIR/gmp
-MPFR_INSTALL_DIR=$INSTALL_DIR/mpfr
-MPC_INSTALL_DIR=$INSTALL_DIR/mpc
 
 mkdir -p $GCC_INSTALL_DIR
 cd $GCC_INSTALL_DIR
@@ -158,12 +154,12 @@ rm -rf *
 cd $PACKAGE_DIR
 rm -rf gcc-$GCC_VERSION
 if [ ! -f "gcc-${GCC_VERSION}.tar.gz" ]; then
-	wget --no-check-certificate https://mirrors.tuna.tsinghua.edu.cn/gnu/gcc/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.gz
+	wget --no-check-certificate https://gcc.gnu.org/pub/gcc/releases/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.gz
 fi
 tar -xvzf gcc-${GCC_VERSION}.tar.gz
 cd $GCC_DIR
-./configure --prefix=$GCC_INSTALL_DIR --with-gmp=$GMP_INSTALL_DIR --with-mpfr=$MPFR_INSTALL_DIR \
-			--with-mpc=$MPC_INSTALL_DIR --disable-multilib 
+./contrib/download_prerequisites
+./configure --prefix=$GCC_INSTALL_DIR --disable-multilib --enable-checking=release 
 make -j6
 make install
 ```
