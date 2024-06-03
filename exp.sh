@@ -11,13 +11,31 @@ DIS_DIR1=/home/GuanTian/lrc-orlb
 DIS_DIR2=/home/GuanTian/wondershaper
 
 # if simulate cross-cluster transfer
-if [ $1 == 5 ]; then
-    ssh GuanTian@node18 'sudo ./wondershaper/wondershaper/wondershaper -c -a ib0;sudo ./wondershaper/wondershaper/wondershaper -a ib0 -d 1000000 -u 1000000'
+if [ $1 == 1 ]; then
+    echo "cluster_number:"${#ARRAY[@]}
+    for i in $(seq 0 $NUM)
+    do
+        temp=${ARRAY[$i]}
+        echo $temp
+        ssh GuanTian@$temp 'cd /home/GuanTian/lrc-orlb;bash cluster_run_redis_datanode.sh;'
+        echo 'redis_datanode process number:'
+        ssh GuanTian@$temp 'ps -aux |grep redis-server | wc -l;ps -aux |grep run_datanode | wc -l;'
+    done
+    for i in $(seq 0 $NUM)
+    do
+        temp=${ARRAY[$i]}
+        echo $temp
+        ssh GuanTian@$temp 'cd /home/GuanTian/lrc-orlb;bash cluster_run_proxy.sh;'
+        echo 'proxy process number:'
+        ssh GuanTian@$temp 'ps -aux |grep run_proxy | wc -l'
+    done
+elif [ $1 == 5 ]; then
+    ssh GuanTian@node18 'sudo ./wondershaper/wondershaper/wondershaper -c -a ib0;sudo ./wondershaper/wondershaper/wondershaper -a ib0 -d 3000000 -u 3000000'
 elif [ $1 == 6 ]; then
     ssh GuanTian@node18 'sudo ./wondershaper/wondershaper/wondershaper -c -a ib0;echo done'
 else
     echo "cluster_number:"${#ARRAY[@]}
-for i in $(seq 0 $NUM)
+    for i in $(seq 0 $NUM)
     do
     temp=${ARRAY[$i]}
         echo $temp
@@ -31,21 +49,18 @@ for i in $(seq 0 $NUM)
             ssh GuanTian@$temp 'ps -aux | grep redis-server | wc -l'
             ssh GuanTian@$temp 'ps -aux | grep run_datanode | wc -l'
             ssh GuanTian@$temp 'ps -aux | grep run_proxy | wc -l'
-        elif [ $1 == 1 ]; then
-            ssh GuanTian@$temp 'cd /home/GuanTian/lrc-orlb;bash cluster_run_redis.sh;bash cluster_run_proxy_datanode.sh'
-            echo 'proxy_datanode process number:'
-            ssh GuanTian@$temp 'ps -aux |grep redis-server | wc -l;ps -aux |grep run_datanode | wc -l;ps -aux |grep run_proxy | wc -l'
         elif [ $1 == 2 ]; then
             ssh GuanTian@$temp 'mkdir -p' ${DIS_DIR1}
             ssh GuanTian@$temp 'mkdir -p' ${DIS_DIR2}
-            rsync -rtvpl ${SRC_PATH1}${i}/cluster_run_redis.sh GuanTian@$temp:${DIS_DIR1}
-            rsync -rtvpl ${SRC_PATH1}${i}/cluster_run_proxy_datanode.sh GuanTian@$temp:${DIS_DIR1}
+            rsync -rtvpl ${SRC_PATH1}${i}/cluster_run_redis_datanode.sh GuanTian@$temp:${DIS_DIR1}
+            rsync -rtvpl ${SRC_PATH1}${i}/cluster_run_proxy.sh GuanTian@$temp:${DIS_DIR1}
             rsync -rtvpl ${SRC_PATH2} GuanTian@$temp:${DIS_DIR1}
             rsync -rtvpl ${SRC_PATH3} GuanTian@$temp:${DIS_DIR2}
             rsync -rtvpl ${SRC_PATH4} GuanTian@$temp:${DIS_DIR1}
         elif [ $1 == 3 ]; then   # if not simulate cross-cluster transfer
-            ssh GuanTian@$temp 'sudo ./wondershaper/wondershaper/wondershaper -c -a ib0;sudo ./wondershaper/wondershaper/wondershaper -a ib0 -d 1000000 -u 1000000'
+            ssh GuanTian@$temp 'sudo ./wondershaper/wondershaper/wondershaper -c -a ib0;sudo ./wondershaper/wondershaper/wondershaper -a ib0 -d 3000000 -u 3000000'
         elif [ $1 == 4 ]; then
             ssh GuanTian@$temp 'sudo ./wondershaper/wondershaper/wondershaper -c -a ib0;echo done'
+        fi
     done
 fi

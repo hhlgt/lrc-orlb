@@ -2,6 +2,13 @@
 
 int main(int argc, char **argv)
 {
+    if (LOG_TO_FILE)
+    {
+        umask(0);
+        close(STDIN_FILENO);
+        close(STDOUT_FILENO);
+        close(STDERR_FILENO);
+    }
     double beta = 0.5;
     if (argc == 2)
     {

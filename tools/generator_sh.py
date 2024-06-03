@@ -6,20 +6,20 @@ cluster_number = 10
 datanode_number_per_cluster = 20
 datanode_port_start = 17600
 cluster_id_start = 0
-iftest = True
+iftest = False
 vc_per_pc = 1
 
 proxy_ip_list = [
-    ["10.0.0.2",41406],
-    ["10.0.0.3",41406],
-    ["10.0.0.5",41406],
-    ["10.0.0.6",41406],
-    ["10.0.0.7",41406],
-    ["10.0.0.8",41406],
-    ["10.0.0.9",41406],
-    ["10.0.0.10",41406],
-    ["10.0.0.11",41406],
-    ["10.0.0.12",41406]
+    ["10.0.0.2",32406],
+    ["10.0.0.3",32406],
+    ["10.0.0.5",32406],
+    ["10.0.0.6",32406],
+    ["10.0.0.7",32406],
+    ["10.0.0.8",32406],
+    ["10.0.0.9",32406],
+    ["10.0.0.10",32406],
+    ["10.0.0.11",32406],
+    ["10.0.0.12",32406],
 ]
 networkcore_address = "10.0.0.18:17550"
 networkcore_ip = "10.0.0.18"
@@ -122,7 +122,7 @@ def generate_cluster_info_dict():
     proxy_idx = 0
     for i in range(cluster_number):
         new_cluster = {}
-        new_cluster["proxy"] = proxy_ip_list[proxy_idx][0]+":"+str(proxy_ip_list[proxy_idx][1] + 5 * proxy_cnt)
+        new_cluster["proxy"] = proxy_ip_list[proxy_idx][0]+":"+str(proxy_ip_list[proxy_idx][1] + 7 * proxy_cnt)
         datanode_list = []
         for j in range(datanode_number_per_cluster):
             port = datanode_port_start + i * datanode_number_per_cluster+ j
@@ -156,6 +156,7 @@ def generate_run_redis_file(bias=1000):
     file_name = parent_path + '/run_redis.sh'
     with open(file_name, 'w') as f:
         f.write("pkill -9 redis-server\n")
+        f.write("sudo sysctl vm.overcommit_memory=1\n")
         f.write("\n")
         for cluster_id in cluster_informtion.keys():
             print("cluster_id",cluster_id)
@@ -191,42 +192,75 @@ def generater_cluster_information_xml():
     tree = ET.ElementTree(root)
     tree.write(file_name, encoding="utf-8", xml_declaration=True)
 
+def cluster_generate_run_redis_datanode_file(i, bias=1000):
+    file_name = parent_path + '/run_cluster_sh/' + str(i) +'/cluster_run_redis_datanode.sh'
+    with open(file_name, 'w') as f:
+        f.write("pkill -9 redis-server\n")
+        f.write("pkill -9 run_proxy\n")
+        f.write("sudo sysctl vm.overcommit_memory=1\n")
+        f.write("\n")
+        for j in range(i * vc_per_pc, (i + 1) * vc_per_pc):
+            for each_datanode in cluster_informtion[j]["datanode"]:
+                f.write("./project/third_party/redis/bin/redis-server --daemonize yes --bind 0.0.0.0 --port "+str(each_datanode[1] + bias)+"\n")
+            f.write("\n") 
+        for j in range(i * vc_per_pc, (i + 1) * vc_per_pc):
+            for each_datanode in cluster_informtion[j]["datanode"]:
+                f.write("./project/build/run_datanode "+"0.0.0.0"+" "+str(each_datanode[1])+"\n")
+            f.write("\n") 
+
+def cluster_generate_run_proxy_file(i):
+    file_name = parent_path + '/run_cluster_sh/' + str(i) +'/cluster_run_proxy.sh'
+    with open(file_name, 'w') as f:
+        f.write("pkill -9 run_proxy\n")
+        f.write("\n")
+        ip = proxy_ip_list[i][0]
+        port = proxy_ip_list[i][1]
+        for j in range(i * vc_per_pc, (i + 1) * vc_per_pc):
+            f.write("./project/build/run_proxy "+"0.0.0.0"+" "+str(port)+" "+networkcore_address+"\n")   
+            f.write("\n")
+            port += 7
+
 def cluster_generate_run_proxy_datanode_file(i):
     file_name = parent_path + '/run_cluster_sh/' + str(i) +'/cluster_run_proxy_datanode.sh'
     with open(file_name, 'w') as f:
         f.write("pkill -9 run_datanode\n")
         f.write("pkill -9 run_proxy\n")
         f.write("\n")
+        ip = proxy_ip_list[i][0]
+        port = proxy_ip_list[i][1]
         for j in range(i * vc_per_pc, (i + 1) * vc_per_pc):
-            ip = proxy_ip_list[j][0]
-            port = proxy_ip_list[j][1]
             for each_datanode in cluster_informtion[j]["datanode"]:
-                f.write("./project/build/run_datanode "+ip+" "+str(each_datanode[1])+"\n")
+                f.write("./project/build/run_datanode "+"0.0.0.0"+" "+str(each_datanode[1])+"\n")
             f.write("\n") 
-            f.write("./project/build/run_proxy "+ip+" "+str(port)+" "+networkcore_address+"\n")   
+            f.write("./project/build/run_proxy "+"0.0.0.0"+" "+str(port)+" "+networkcore_address+"\n")   
             f.write("\n")
+            port += 7
 
 def cluster_generate_run_redis_file(i, bias=1000):
     file_name = parent_path + '/run_cluster_sh/' + str(i) +'/cluster_run_redis.sh'
     with open(file_name, 'w') as f:
         f.write("pkill -9 redis-server\n")
+        f.write("sudo sysctl vm.overcommit_memory=1\n")
         f.write("\n")
-        for each_datanode in cluster_informtion[0]["datanode"]:
-            f.write("./project/third_party/redis/bin/redis-server --daemonize yes --bind 0.0.0.0 --port "+str(each_datanode[1] + bias)+"\n")
-        f.write("\n") 
+        for j in range(i * vc_per_pc, (i + 1) * vc_per_pc):
+            for each_datanode in cluster_informtion[j]["datanode"]:
+                f.write("./project/third_party/redis/bin/redis-server --daemonize yes --bind 0.0.0.0 --port "+str(each_datanode[1] + bias)+"\n")
+            f.write("\n") 
 
 def cluster_generate_sh_for_networkcore(i, bias=1000):
-    file_name = parent_path + '/run_cluster_sh/' + str(i) +'/cluster_run_proxy_datanode.sh'
+    file_name = parent_path + '/run_cluster_sh/' + str(i) +'/cluster_run_redis_datanode.sh'
     with open(file_name, 'w') as f:
         f.write("pkill -9 run_datanode\n")
-        f.write("\n")
-        f.write("./project/build/run_datanode "+networkcore_ip+" "+str(networkcore_port)+"\n")
-        f.write("\n")
-    file_name = parent_path + '/run_cluster_sh/' + str(i) +'/cluster_run_redis.sh'
-    with open(file_name, 'w') as f:
         f.write("pkill -9 redis-server\n")
+        f.write("sudo sysctl vm.overcommit_memory=1\n")
         f.write("\n")
         f.write("./project/third_party/redis/bin/redis-server --daemonize yes --bind 0.0.0.0 --port "+str(networkcore_port + bias)+"\n")
+        f.write("\n")
+        f.write("./project/build/run_datanode "+"0.0.0.0"+" "+str(networkcore_port)+"\n")
+        f.write("\n")
+    file_name = parent_path + '/run_cluster_sh/' + str(i) +'/cluster_run_proxy.sh'
+    with open(file_name, 'w') as f:
+        f.write("echo done\n")
         f.write("\n")
 
 if __name__ == "__main__":
@@ -238,7 +272,8 @@ if __name__ == "__main__":
     else:
         cnt = 0
         for i in range(cluster_number / vc_per_pc):
-            cluster_generate_run_proxy_datanode_file(i)
+            cluster_generate_run_proxy_file(i)
+            cluster_generate_run_redis_datanode_file(i)
             cnt += 1
         cluster_generate_sh_for_networkcore(cnt)
         cnt += 1

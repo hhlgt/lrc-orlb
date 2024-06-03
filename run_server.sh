@@ -1,6 +1,6 @@
 # limit bandwidth
-sh exp.sh 3
+sh exp.sh 5
 # run datanodes and proxies
 sh exp.sh 1
 # run coordinator
-./project/cmake/build/run_coordinator > xxx.txt &
+./project/build/run_coordinator &

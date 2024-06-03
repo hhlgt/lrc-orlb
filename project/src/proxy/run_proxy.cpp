@@ -12,7 +12,7 @@ int main(int argc, char **argv)
     std::string ip(argv[1]);
     int port = std::stoi(argv[2]);
     std::string networkcore(argv[3]);
-    if (false)
+    if (true)
     {
         umask(0);
         close(STDIN_FILENO);

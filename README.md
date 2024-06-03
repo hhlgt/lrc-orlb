@@ -63,7 +63,7 @@ sh compile.sh
 - The parameter meaning of `run_client`
 
   ```shell
-  ./run_client partial_decoding encode_type partitioning_type fault_tolerance_level node_selection_type k l g block_size(KB) stripe_num
+  ./run_client partial_decoding encode_type partitioning_type fault_tolerance_level node_selection_type k l g block_size(KB) stripe_num logfile
   ```
 
   - `partial_decoding` if adopt encode-and-transfer during repair process
@@ -86,6 +86,7 @@ sh compile.sh
   - `k,l,g` the coding parameters of `LRC` stripes
   - `block_size` denotes the size of each block in a stripe, with the unit of `KiB`
   - `stripe_num` denotes the number of stripes in the storage system for test
+  - `logfile` (optional) denotes the information output file in new dir `res` when setting `LOF_IN_FILE` as `true` in `utils.h`
 
 ### Others
 

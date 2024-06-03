@@ -8,7 +8,7 @@ int main(int argc, char **argv)
         exit(0);
     }
     setsid();
-    if (false)
+    if (true)
     {
         umask(0);
         close(STDIN_FILENO);

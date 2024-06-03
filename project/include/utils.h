@@ -15,8 +15,9 @@
 #include <sys/time.h>
 #include <source_location>
 
-#define IF_SIMULATION true
-#define IF_SIMULATE_CROSS_RACK false
+#define LOG_TO_FILE true
+#define IF_SIMULATION false
+#define IF_SIMULATE_CROSS_RACK true
 #define IF_DEBUG false
 #define IF_THREE_HIERARCHY false    // for hierarchy extension
 #define IF_DIRECT_FROM_NODE true    // proxy can directly access data from nodes in other racks
