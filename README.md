@@ -55,7 +55,7 @@ sh compile.sh
     - then
 
     ```shell
-    sh run_server.sh
+    sh run_server.sh	// run redis-server, datanode, proxy in order
     sh run_client.sh
     ```
 
@@ -146,7 +146,9 @@ sh compile.sh
 - a shell script
 
 ```shell
+PACKAGE_DIR=/path/to/where/tar_package/in
 INSTALL_DIR=/path/to/install
+GCC_DIR=$PACKAGE_DIR/gcc-$GCC_VERSION
 GCC_INSTALL_DIR=$INSTALL_DIR/gcc-$GCC_VERSION
 
 mkdir -p $GCC_INSTALL_DIR
@@ -185,5 +187,37 @@ else
 	sudo echo "export LD_LIBRARY_PATH=${GCC_INSTALL_DIR}/lib:${GCC_INSTALL_DIR}/lib64:\$LD_LIBRARY_PATH" >> ~/.bashrc
 	source ~/.bashrc
 fi
+```
+
+#### About installing `GLIBC_2.18` safely
+
+Running project complied by`gcc-11` may need `GLIBC_2.18`, when your system may have not installed the updated version, you can install it to your local environment using the script.
+
+```shell
+PACKAGE_DIR=/path/to/where/tar_package/in
+INSTALL_DIR=/path/to/install
+GLIBC_DIR=$PACKAGE_DIR/glibc-2.18
+GLIBC_INSTALL_DIR=$INSTALL_DIR/glibc-2.18
+
+mkdir -p $GLIBC_INSTALL_DIR
+cd $GLIBC_INSTALL_DIR
+rm -rf *
+cd $PACKAGE_DIR
+rm -rf glibc-2.18
+if [ ! -f "glibc-2.18.tar.gz" ]; then
+	wget --no-check-certificate https://mirrors.tuna.tsinghua.edu.cn/gnu/glibc/glibc-2.18.tar.gz
+fi
+tar -xvzf glibc-2.18.tar.gz
+cd $GLIBC_DIR
+./glibc-2.18/configure --prefix=$GLIBC_INSTALL_DIR
+make -j6
+make install
+```
+
+then compile the project with flag `-Wl,--rpath=` and `-Wl,--dynamic-linker=`, when using `CmakeLists.txt`, add the following sentences
+
+```cmake
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--rpath=/path/to/install/glibc-2.18/lib -Wl,--dynamic-linker=/path/to/install/glibc-2.18/lib/ld-2.18.so")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--rpath=/path/to/install/glibc-2.18/lib -Wl,--dynamic-linker=/path/to/install/glibc-2.18/lib/ld-2.18.so")
 ```
 
