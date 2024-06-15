@@ -114,7 +114,11 @@ int main(int argc, char **argv)
     char buff[256];
     getcwd(buff, 256);
     std::string cwf = std::string(argv[0]);
-    std::string log_path = std::string(buff) + cwf.substr(1, cwf.rfind('/') - 1) + "/../../res/" + std::string(argv[11]);
+    std::string log_path = std::string(buff) + cwf.substr(1, cwf.rfind('/') - 1) + "/../../res/test.txt";
+    if(LOG_TO_FILE)
+    {
+        log_path = std::string(buff) + cwf.substr(1, cwf.rfind('/') - 1) + "/../../res/" + std::string(argv[11]);
+    }
     std::ofstream outfile(log_path, std::ios::app);
 
     if(LOG_TO_FILE)

@@ -2,7 +2,7 @@
 
 int main(int argc, char **argv)
 {
-    if (LOG_TO_FILE)
+    if (true)
     {
         umask(0);
         close(STDIN_FILENO);

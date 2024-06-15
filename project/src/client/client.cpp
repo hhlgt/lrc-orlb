@@ -1,4 +1,5 @@
 #include "client.h"
+#include <unistd.h>
 
 namespace ECProject
 {
@@ -123,9 +124,18 @@ namespace ECProject
         return response;
     }
 
-    double Client::check_load_balance_and_migration(double new_beta, double storage_bias_threshold, double network_bias_threshold)
+    double Client::check_load_balance_and_migration(double new_beta, double rack_storage_bias_threshold, double rack_network_bias_threshold,
+                                                    double node_storage_bias_threshold, double node_network_bias_threshold)
     {
-        auto migration_time = async_simple::coro::syncAwait(rpc_coordinator_->call<&Coordinator::check_load_balance>(new_beta, storage_bias_threshold, network_bias_threshold)).value();
+        async_simple::coro::syncAwait(rpc_coordinator_->call<&Coordinator::check_load_balance>(new_beta, 
+                                                            rack_storage_bias_threshold, rack_network_bias_threshold, 
+                                                            node_storage_bias_threshold, node_network_bias_threshold));
+        double migration_time = 0;
+        while(migration_time == 0)
+        {
+            sleep(2);
+            migration_time = async_simple::coro::syncAwait(rpc_coordinator_->call<&Coordinator::check_migration>()).value();
+        }
         return migration_time;
     }
 }

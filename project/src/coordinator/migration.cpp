@@ -1,4 +1,5 @@
 #include "coordinator.h"
+#include <fstream>
 
 inline bool cmp_ascending(std::pair<unsigned int, double> &a,std::pair<unsigned int, double> &b) 
 {
@@ -13,10 +14,19 @@ namespace ECProject
 {
     void Coordinator::do_migration_on_rack_level(double storage_bias_threshold, double network_bias_threshold)
     {
-        double rack_avg_storage_cost, rack_avg_network_cost;
-        double rack_storage_bias, rack_network_bias;
+        // std::string log_path = "/mnt/d/EC/icpp23-extension/prototype/res/test-rack.txt";
+        // std::ofstream outfile(log_path, std::ios::app);
+
+        double rack_avg_storage_cost = 0, rack_avg_network_cost = 0;
+        double rack_storage_bias = 0, rack_network_bias = 0;
         compute_avg_cost_and_bias_on_rack_level(rack_avg_storage_cost, rack_avg_network_cost,
                                                 rack_storage_bias, rack_network_bias);
+        int iter = 0;
+        double origin_storage_bias = rack_storage_bias;
+        double origin_network_bias = rack_network_bias;
+        double min_storage_bias = rack_storage_bias, record_storage_bias = rack_storage_bias;
+        double min_network_bias = rack_network_bias, record_network_bias = rack_network_bias;
+        double diff_storage = 0, diff_network = 0;
         while(rack_storage_bias > storage_bias_threshold 
               && rack_network_bias > network_bias_threshold)
         {
@@ -188,7 +198,6 @@ namespace ECProject
                         migration_info.dst_nodes.push_back({node_table_[dst_node_id].node_ip, node_table_[dst_node_id].node_port});
                     }
                 }
-
                 // migration
                 if(!IF_SIMULATION)
                 {
@@ -224,19 +233,57 @@ namespace ECProject
             double old_rack_network_bias = rack_network_bias;
             compute_avg_cost_and_bias_on_rack_level(rack_avg_storage_cost, rack_avg_network_cost,
                                                     rack_storage_bias, rack_network_bias);
-            if(old_rack_storage_bias < rack_storage_bias || old_rack_network_bias < rack_network_bias)
+            
+            // outfile << rack_storage_bias << " " << rack_network_bias << "\n";
+
+            if(rack_storage_bias >= 1.05 * origin_storage_bias || rack_network_bias >= 1.05 * origin_network_bias)
+            {
+                break;
+            }
+            min_storage_bias = std::min(min_storage_bias, rack_storage_bias);
+            min_network_bias = std::min(min_network_bias, rack_network_bias);
+            iter++;
+            if(iter == 20)
+            {
+                if(record_storage_bias <= min_storage_bias && record_network_bias <= min_network_bias)
+                {
+                    break;
+                }
+                else
+                {
+                    record_storage_bias = min_storage_bias;
+                    record_network_bias = min_network_bias;
+                }
+                iter = 0;
+            }
+            // avoid infinite loop
+            double old_diff_storage = diff_storage;
+            double old_diff_network = diff_network;
+            diff_storage = std::abs(rack_storage_bias - old_rack_storage_bias);
+            diff_network = std::abs(rack_network_bias - old_rack_network_bias);
+            if(old_diff_storage == diff_storage && old_diff_network == diff_network)
             {
                 break;
             }
         }
+        // outfile.close();
     }
 
     void Coordinator::do_migration_on_node_level_inside_rack(double storage_bias_threshold, double network_bias_threshold)
     {
-        double node_avg_storage_cost, node_avg_network_cost;
-        double node_storage_bias, node_network_bias;
+        // std::string log_path = "/mnt/d/EC/icpp23-extension/prototype/res/test-node.txt";
+        // std::ofstream outfile(log_path, std::ios::app);
+
+        double node_avg_storage_cost = 0, node_avg_network_cost = 0;
+        double node_storage_bias = 0, node_network_bias = 0;
         compute_avg_cost_and_bias_on_node_level(node_avg_storage_cost, node_avg_network_cost,
                                                 node_storage_bias, node_network_bias);
+        int iter = 0;
+        double origin_storage_bias = node_storage_bias;
+        double origin_network_bias = node_network_bias;
+        double min_storage_bias = node_storage_bias, record_storage_bias = node_storage_bias;
+        double min_network_bias = node_network_bias, record_network_bias = node_network_bias;
+        double diff_storage = 0, diff_network = 0;
         while(node_storage_bias > storage_bias_threshold 
               && node_network_bias > network_bias_threshold)
         {
@@ -362,10 +409,39 @@ namespace ECProject
             double old_node_network_bias = node_network_bias;
             compute_avg_cost_and_bias_on_node_level(node_avg_storage_cost, node_avg_network_cost,
                                                 node_storage_bias, node_network_bias);
-            if(old_node_storage_bias <= node_storage_bias || old_node_network_bias <= node_network_bias)
+
+            // outfile << node_storage_bias << " " << node_network_bias << "\n";
+
+            if(node_storage_bias >= 1.05 * origin_storage_bias || node_network_bias >= 1.05 * origin_network_bias)
+            {
+                break;
+            }
+            min_storage_bias = std::min(min_storage_bias, node_storage_bias);
+            min_network_bias = std::min(min_network_bias, node_network_bias);
+            iter++;
+            if(iter == 20)
+            {
+                if(record_storage_bias <= min_storage_bias && record_network_bias <= min_network_bias)
+                {
+                    break;
+                }
+                else
+                {
+                    record_storage_bias = min_storage_bias;
+                    record_network_bias = min_network_bias;
+                }
+                iter = 0;
+            }
+            // avoid infinite loop
+            double old_diff_storage = diff_storage;
+            double old_diff_network = diff_network;
+            diff_storage = std::abs(node_storage_bias - old_node_storage_bias);
+            diff_network = std::abs(node_network_bias - old_node_network_bias);
+            if(old_diff_storage == diff_storage && old_diff_network == diff_network)
             {
                 break;
             }
         }
+        // outfile.close();
     }
 }

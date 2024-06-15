@@ -297,6 +297,8 @@ namespace ECProject
         for(auto it = failed_blocks.begin(); it != failed_blocks.end(); it++)
         {
             unsigned int node_id = stripe.blocks2nodes[*it];
+            // node_table_[node_id].storage_cost -= 1;
+            // node_table_[node_id].network_cost -= 1;
             unsigned int rack_id = node_table_[node_id].map2rack;
             if(free_nodes_in_racks.find(rack_id) == free_nodes_in_racks.end())
             {
@@ -425,6 +427,8 @@ namespace ECProject
             
             std::string node_ip = node_table_[new_node_id].node_ip;
             int node_port = node_table_[new_node_id].node_port;
+            // node_table_[new_node_id].storage_cost += 1;
+            // node_table_[new_node_id].network_cost += 1;
             main_plan.new_locations.push_back(std::make_pair(rack_id, std::make_pair(node_ip, node_port)));
         }
         main_repair.push_back(main_plan);

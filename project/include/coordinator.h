@@ -33,11 +33,14 @@ namespace ECProject
         // repair, repair a list of blocks in specified stripes (stripe_id>=0) or nodes (stripe_id=-1)
         repair_resp request_repair(std::vector<unsigned int> failed_ids, int stripe_id);
         // migration for load balance
-        double check_load_balance(double new_beta, double storage_bias_threshold, double network_bias_threshold);
+        void check_load_balance(double new_beta, double rack_storage_bias_threshold, double rack_network_bias_threshold,
+                                  double node_storage_bias_threshold, double node_network_bias_threshold);
         // others
         std::vector<unsigned int> list_stripes();
         // rack_storage_bias, rack_network_bias, node_storage_bias, node_network_bias
         bias_info compute_biases();
+        // check if migration finish
+        double check_migration();
 
     private:
         // aux.cpp
@@ -125,6 +128,7 @@ namespace ECProject
         double alpha_;
         double beta_;
         double gama_;
+        double time_;
     };
 }
 

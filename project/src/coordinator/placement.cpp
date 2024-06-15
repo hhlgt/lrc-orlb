@@ -786,6 +786,8 @@ namespace ECProject
                         double &node_avg_storage_cost, double &node_avg_network_cost,
                         double &node_storage_bias, double &node_network_bias)
     {
+        node_avg_storage_cost = 0;
+        node_avg_network_cost = 0;
         double node_max_storage_cost = 0, node_max_network_cost = 0;
         double node_min_storage_cost = 10000, node_min_network_cost = 10000;
         for (auto &node : node_table_) {
@@ -804,15 +806,19 @@ namespace ECProject
         }
         node_avg_storage_cost /= (double)node_table_.size();
         node_avg_network_cost /= (double)node_table_.size();
-        node_storage_bias = std::max(node_max_storage_cost - node_avg_storage_cost, 
-                            node_avg_storage_cost - node_min_storage_cost) / node_avg_storage_cost;
-        node_network_bias = std::max(node_max_network_cost - node_avg_network_cost, 
-                            node_avg_network_cost - node_min_network_cost) / node_avg_network_cost;
+        // node_storage_bias = std::max(node_max_storage_cost - node_avg_storage_cost, 
+        //                     node_avg_storage_cost - node_min_storage_cost) / node_avg_storage_cost;
+        // node_network_bias = std::max(node_max_network_cost - node_avg_network_cost, 
+        //                     node_avg_network_cost - node_min_network_cost) / node_avg_network_cost;
+        node_storage_bias = (node_max_storage_cost - node_avg_storage_cost) / node_avg_storage_cost;
+        node_network_bias = (node_max_network_cost - node_avg_network_cost) / node_avg_network_cost;
     }
     void Coordinator::compute_avg_cost_and_bias_on_rack_level(
                         double &rack_avg_storage_cost, double &rack_avg_network_cost,
                         double &rack_storage_bias, double &rack_network_bias)
     {
+        rack_avg_storage_cost = 0;
+        rack_avg_network_cost = 0;
         double rack_max_storage_cost = 0, rack_max_network_cost = 0;
         double rack_min_storage_cost = 10000, rack_min_network_cost = 10000;
         for (auto &rack : rack_table_) {
@@ -831,9 +837,11 @@ namespace ECProject
         }
         rack_avg_storage_cost /= (double)rack_table_.size();
         rack_avg_network_cost /= (double)rack_table_.size();
-        rack_storage_bias = std::max(rack_max_storage_cost - rack_avg_storage_cost, 
-                            rack_avg_storage_cost - rack_min_storage_cost) / rack_avg_storage_cost;
-        rack_network_bias = std::max(rack_max_network_cost - rack_avg_network_cost, 
-                            rack_avg_network_cost - rack_min_network_cost) / rack_avg_network_cost;
+        // rack_storage_bias = std::max(rack_max_storage_cost - rack_avg_storage_cost, 
+        //                     rack_avg_storage_cost - rack_min_storage_cost) / rack_avg_storage_cost;
+        // rack_network_bias = std::max(rack_max_network_cost - rack_avg_network_cost, 
+        //                     rack_avg_network_cost - rack_min_network_cost) / rack_avg_network_cost;
+        rack_storage_bias = (rack_max_storage_cost - rack_avg_storage_cost) / rack_avg_storage_cost;
+        rack_network_bias = (rack_max_network_cost - rack_avg_network_cost) / rack_avg_network_cost;
     }
 }

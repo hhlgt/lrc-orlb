@@ -16,7 +16,7 @@
 #include <source_location>
 
 #define LOG_TO_FILE true
-#define IF_SIMULATION false
+#define IF_SIMULATION true
 #define IF_SIMULATE_CROSS_RACK true
 #define IF_DEBUG false
 #define IF_THREE_HIERARCHY false    // for hierarchy extension
@@ -235,6 +235,8 @@ namespace ECProject
     std::string generate_random_string(int length);
 
     void generate_unique_random_strings(int key_length, int value_length, int n, std::unordered_map<std::string, std::string> &key_value);
+
+    void generate_unique_random_keys(int key_length, int n, std::unordered_set<std::string> &keys);
 
     void exit_when(bool condition, const std::source_location &location);
 

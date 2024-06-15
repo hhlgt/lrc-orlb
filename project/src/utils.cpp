@@ -91,6 +91,24 @@ void ECProject::generate_unique_random_strings(
     }
 }
 
+void ECProject::generate_unique_random_keys(int key_length, int n, std::unordered_set<std::string> &keys)
+{
+    std::mt19937 rng(std::time(0)); // take current time as random seed
+    std::uniform_int_distribution<int> distribution(0, charset.size() - 1);
+
+    for (int i = 0; i < n; i++) {
+        std::string key;
+        do {
+            for (int i = 0; i < key_length; ++i) {
+                int random_index = distribution(rng);
+                key += charset[random_index];
+            }
+        } while (keys.find(key) != keys.end());
+
+        keys.insert(key);
+    }
+}
+
 void ECProject::exit_when(bool condition, const std::source_location &location) {
     if (!condition) {
         std::cerr << "Condition failed at " << location.file_name() << ":" << location.line()

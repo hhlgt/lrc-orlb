@@ -86,13 +86,22 @@ namespace ECProject
         {
             double storage = 16;
             double bandwidth = 1;
-            if(node_id % num_of_nodes_per_rack_ > 0.8 * num_of_nodes_per_rack_)
+            if(node_id % num_of_nodes_per_rack_ >= 0.8 * num_of_nodes_per_rack_ || 
+               node_id >= 0.8 * num_of_racks_ * num_of_nodes_per_rack_)
             {
                 storage = 64;
                 bandwidth = 10;
             }
-            node_table_[node_id].storage = storage * 1024 * 1024 * 1024 * 1024 / (double)ec_schema_.block_size;
-            node_table_[node_id].bandwidth = bandwidth * 1024 * 1024 * 128 / (double)ec_schema_.block_size;
+            if(IF_NEW_LOAD_METRIC)
+            {
+                node_table_[node_id].storage = storage * 1024 * 1024 * 1024 * 1024 / (double)ec_schema_.block_size;
+                node_table_[node_id].bandwidth = bandwidth * 1024 * 1024 * 128 / (double)ec_schema_.block_size;
+            }
+            else
+            {
+                node_table_[node_id].storage = storage;
+                node_table_[node_id].bandwidth = bandwidth;
+            }
             node_table_[node_id].storage_cost = 0;
             node_table_[node_id].network_cost = 0;
         }
@@ -122,6 +131,7 @@ namespace ECProject
     void Coordinator::reset_metadata()
     {
         cur_stripe_id_ = 0;
+        time_ = 0;
         commited_object_table_.clear();
         updating_object_table_.clear();
         stripe_table_.clear();

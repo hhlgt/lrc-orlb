@@ -26,7 +26,8 @@ namespace ECProject
         // get biases
         bias_info get_bias();
         // migration
-        double check_load_balance_and_migration(double new_beta, double storage_bias_threshold, double network_bias_threshold);
+        double check_load_balance_and_migration(double new_beta, double rack_storage_bias_threshold, double rack_network_bias_threshold,
+                                                double node_storage_bias_threshold, double node_network_bias_threshold);
 
         private:
         std::unique_ptr<coro_rpc::coro_rpc_client> rpc_coordinator_{nullptr};

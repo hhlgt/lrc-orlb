@@ -17,9 +17,11 @@ namespace ECProject
         rpc_server_->register_handler<&Coordinator::check_load_balance>(this);
         rpc_server_->register_handler<&Coordinator::list_stripes>(this);
         rpc_server_->register_handler<&Coordinator::compute_biases>(this);
+        rpc_server_->register_handler<&Coordinator::check_migration>(this);
 
         gama_ = 0.1;
         cur_stripe_id_ = 0;
+        time_ = 0;
         
         init_rack_info();
         init_proxy_info();
@@ -335,6 +337,8 @@ namespace ECProject
                 std::string key = std::to_string(stripe.stripe_id) + "_" + std::to_string(j);
                 delete_info.block_ids.push_back(key);
                 Node &node = node_table_[stripe.blocks2nodes[j]];
+                node.storage_cost -= 1;
+                node.network_cost -= 1;
                 delete_info.datanode_ip_port.push_back({node.node_ip, node.node_port});
             }
         }
@@ -401,19 +405,50 @@ namespace ECProject
         return response;
     }
 
-    double Coordinator::check_load_balance(double new_beta, double storage_bias_threshold, double network_bias_threshold)
+    void Coordinator::check_load_balance(double new_beta, 
+                        double rack_storage_bias_threshold, double rack_network_bias_threshold,
+                        double node_storage_bias_threshold, double node_network_bias_threshold)
     {
         if(new_beta >= 0 && new_beta <= 1)
         {
             beta_ = new_beta;
         }
-        struct timeval start_time, end_time;
+        auto check_and_migration = [this, rack_storage_bias_threshold, rack_network_bias_threshold, 
+                                    node_storage_bias_threshold, node_network_bias_threshold] () mutable
+        {
+            struct timeval start_time, end_time;
+            double migration_time = 0;
+            gettimeofday(&start_time, NULL);
+            do_migration_on_rack_level(rack_storage_bias_threshold, rack_network_bias_threshold);
+            do_migration_on_node_level_inside_rack(node_storage_bias_threshold, node_network_bias_threshold);
+            gettimeofday(&end_time, NULL);
+            migration_time = end_time.tv_sec - start_time.tv_sec + (end_time.tv_usec - start_time.tv_usec) * 1.0 / 1000000;
+            mutex_.lock();
+            time_ = migration_time;
+            mutex_.unlock();
+        };
+        try
+        {
+            std::thread my_thread(check_and_migration);
+            my_thread.detach();
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+        }
+        
+    }
+
+    double Coordinator::check_migration()
+    {
         double migration_time = 0;
-        gettimeofday(&start_time, NULL);
-        do_migration_on_rack_level(storage_bias_threshold, network_bias_threshold);
-        do_migration_on_node_level_inside_rack(storage_bias_threshold, network_bias_threshold);
-        gettimeofday(&end_time, NULL);
-        migration_time += end_time.tv_sec - start_time.tv_sec + (end_time.tv_usec - start_time.tv_usec) * 1.0 / 1000000;
+        mutex_.lock();
+        migration_time = time_;
+        if(time_ > 0)
+        {
+            time_ = 0;
+        }
+        mutex_.unlock();
         return migration_time;
     }
 }

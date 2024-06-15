@@ -7,6 +7,8 @@ endif()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--rpath=/home/GuanTian/local/glibc-2.18/lib -Wl,--dynamic-linker=/home/GuanTian/local/glibc-2.18/lib/ld-2.18.so")
+# set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--rpath=/home/GuanTian/local/glibc-2.18/lib -Wl,--dynamic-linker=/home/GuanTian/local/glibc-2.18/lib/ld-2.18.so")
 
 find_package(Threads REQUIRED)
 
@@ -73,8 +75,15 @@ add_executable(simulation
     ${SHARED_SOURCES}
 )
 
+add_executable(sim_load_balance
+    src/client/client.cpp
+    src/client/sim_load_balance.cpp
+    ${SHARED_SOURCES}
+)
+
 target_link_libraries(run_client Threads::Threads Jerasure gf_complete redis++)
 target_link_libraries(run_coordinator Threads::Threads Jerasure gf_complete redis++)
 target_link_libraries(run_proxy Threads::Threads Jerasure gf_complete redis++)
 target_link_libraries(run_datanode Threads::Threads Jerasure gf_complete redis++)
-target_link_libraries(simulation Threads::Threads Jerasure gf_complete redis++)
+target_link_libraries(simulation Threads::Threads Jerasure gf_complete)
+target_link_libraries(sim_load_balance Threads::Threads Jerasure gf_complete)
